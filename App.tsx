@@ -24,13 +24,17 @@ const App: React.FC = () => {
 
   // 초기 데이터 로드 (mount 시 1회 실행)
   useEffect(() => {
-    const flattenedHc = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.hcs);
-    const flattenedPay = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.pay);
-    const flattenedAtt = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.att);
-    
-    setAllHeadcount(flattenedHc);
-    setAllPayroll(flattenedPay);
-    setAllAttendance(flattenedAtt);
+    try {
+      const flattenedHc = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.hcs || []);
+      const flattenedPay = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.pay || []);
+      const flattenedAtt = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.att || []);
+      
+      setAllHeadcount(flattenedHc);
+      setAllPayroll(flattenedPay);
+      setAllAttendance(flattenedAtt);
+    } catch (error) {
+      console.error("Initial data load failed:", error);
+    }
   }, []);
 
   const headcount = useMemo(() => allHeadcount.filter(h => h.reference_month === currentMonth), [allHeadcount, currentMonth]);
