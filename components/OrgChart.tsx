@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { OrgNode, Organization } from '../types';
+import { OrgNode, Organization } from '../types.ts';
 
 interface OrgChartProps {
   tree: OrgNode[];

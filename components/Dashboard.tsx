@@ -4,7 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
-import { Headcount, Payroll, Organization, Attendance } from '../types';
+import { Headcount, Payroll, Organization, Attendance } from '../types.ts';
 
 interface DashboardProps {
   headcount: Headcount[];

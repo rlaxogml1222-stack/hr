@@ -3,7 +3,7 @@ import React from 'react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
-import { Payroll, Headcount, Organization } from '../types';
+import { Payroll, Headcount, Organization } from '../types.ts';
 
 interface PayrollAnalysisProps {
   payroll: Payroll[];

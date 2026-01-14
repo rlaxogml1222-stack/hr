@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Organization, Headcount, Payroll } from '../types';
+import { Organization, Headcount, Payroll } from '../types.ts';
 
 interface DataUploadProps {
   organizations: Organization[];

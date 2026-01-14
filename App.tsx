@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Organization, Headcount, Payroll, Attendance, ViewType, OrgNode } from './types';
-import { INITIAL_ORGS, INITIAL_HEADCOUNT, INITIAL_PAYROLL, INITIAL_ATTENDANCE } from './constants';
-import Dashboard from './components/Dashboard';
-import OrgChart from './components/OrgChart';
-import PayrollAnalysis from './components/PayrollAnalysis';
-import DataUpload from './components/DataUpload';
-import Sidebar from './components/Sidebar';
+import { Organization, Headcount, Payroll, Attendance, ViewType, OrgNode } from './types.ts';
+import { INITIAL_ORGS, INITIAL_HEADCOUNT, INITIAL_PAYROLL, INITIAL_ATTENDANCE } from './constants.tsx';
+import Dashboard from './components/Dashboard.tsx';
+import OrgChart from './components/OrgChart.tsx';
+import PayrollAnalysis from './components/PayrollAnalysis.tsx';
+import DataUpload from './components/DataUpload.tsx';
+import Sidebar from './components/Sidebar.tsx';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
