@@ -5,13 +5,19 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   define: {
-    // Gemini SDK가 요구하는 process.env 환경변수 대응
     'process.env': {
       API_KEY: process.env.API_KEY
     }
   },
   build: {
     outDir: 'dist',
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'recharts']
+        }
+      }
+    }
   }
 });
