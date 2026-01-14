@@ -21,12 +21,20 @@ export interface Headcount {
 
 export interface Payroll {
   org_id: string;
-  effective_month: string; // YYYY-MM
-  base_pay: number;
-  bonus: number;
-  allowances: number;
-  overtime_pay: number;
-  holiday_pay: number;
+  effective_month: string;
+  base_pay: number;           // 기본급
+  base_pay_retro: number;     // 기본급 소급
+  fixed_overtime: number;     // 고정연장근로수당
+  rank_allowance: number;     // 직급수당
+  meal_allowance: number;     // 식대
+  position_allowance: number; // 직책수당
+  childcare_allowance: number;// 육아수당
+  holiday_work_pay: number;   // 휴일근무수당
+  overtime_work_pay: number;  // 연장근무수당
+  other_allowance: number;    // 기타수당
+  cert_allowance: number;     // 자격수당
+  annual_leave_pay: number;   // 연차수당
+  incentive: number;          // 인센티브
   currency: 'KRW';
 }
 
@@ -34,8 +42,9 @@ export interface Attendance {
   org_id: string;
   reference_month: string;
   avg_working_hours: number;
-  total_overtime_hours: number;
-  total_holiday_hours: number;
+  weekday_overtime_hours: number; // 평일 연장 근로
+  holiday_overtime_hours: number; // 휴일 근로
+  total_overtime_hours: number; // 합계
   attendance_issues: number;
 }
 
