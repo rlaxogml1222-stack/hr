@@ -9,34 +9,83 @@ import AttendanceAnalysis from './components/AttendanceAnalysis.tsx';
 import DataUpload from './components/DataUpload.tsx';
 import Sidebar from './components/Sidebar.tsx';
 
+const STORAGE_KEYS = {
+  ORGS: 'hr_pro_orgs',
+  HC: 'hr_pro_hc',
+  PAY: 'hr_pro_pay',
+  ATT: 'hr_pro_att'
+};
+
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('dashboard');
-  
   const [selectedYear, setSelectedYear] = useState<string>(CURRENT_MONTH.split('-')[0]);
   const [selectedMonth, setSelectedMonth] = useState<string>(CURRENT_MONTH.split('-')[1]);
-
   const currentMonth = useMemo(() => `${selectedYear}-${selectedMonth}`, [selectedYear, selectedMonth]);
   
-  const [organizations] = useState<Organization[]>(INITIAL_ORGS);
+  // 상태 선언
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [allHeadcount, setAllHeadcount] = useState<Headcount[]>([]);
   const [allPayroll, setAllPayroll] = useState<Payroll[]>([]);
   const [allAttendance, setAllAttendance] = useState<Attendance[]>([]);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'info' } | null>(null);
 
-  // 초기 데이터 로드 (mount 시 1회 실행)
+  // 1. 초기 로드
   useEffect(() => {
-    try {
+    const savedOrgs = localStorage.getItem(STORAGE_KEYS.ORGS);
+    const savedHc = localStorage.getItem(STORAGE_KEYS.HC);
+    const savedPay = localStorage.getItem(STORAGE_KEYS.PAY);
+    const savedAtt = localStorage.getItem(STORAGE_KEYS.ATT);
+
+    if (savedOrgs && savedHc && savedPay && savedAtt) {
+      setOrganizations(JSON.parse(savedOrgs));
+      setAllHeadcount(JSON.parse(savedHc));
+      setAllPayroll(JSON.parse(savedPay));
+      setAllAttendance(JSON.parse(savedAtt));
+    } else {
       const flattenedHc = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.hcs || []);
       const flattenedPay = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.pay || []);
       const flattenedAtt = Object.values(ALL_INITIAL_DATA).flatMap((d: any) => d.att || []);
       
+      setOrganizations(INITIAL_ORGS);
       setAllHeadcount(flattenedHc);
       setAllPayroll(flattenedPay);
       setAllAttendance(flattenedAtt);
-    } catch (error) {
-      console.error("Initial data load failed:", error);
     }
   }, []);
 
+  // 2. 자동 저장 (영속성 유지)
+  useEffect(() => {
+    if (organizations.length > 0) localStorage.setItem(STORAGE_KEYS.ORGS, JSON.stringify(organizations));
+  }, [organizations]);
+  useEffect(() => {
+    if (allHeadcount.length > 0) localStorage.setItem(STORAGE_KEYS.HC, JSON.stringify(allHeadcount));
+  }, [allHeadcount]);
+  useEffect(() => {
+    if (allPayroll.length > 0) localStorage.setItem(STORAGE_KEYS.PAY, JSON.stringify(allPayroll));
+  }, [allPayroll]);
+  useEffect(() => {
+    if (allAttendance.length > 0) localStorage.setItem(STORAGE_KEYS.ATT, JSON.stringify(allAttendance));
+  }, [allAttendance]);
+
+  // 수동 저장 함수
+  const handleSaveAll = () => {
+    localStorage.setItem(STORAGE_KEYS.ORGS, JSON.stringify(organizations));
+    localStorage.setItem(STORAGE_KEYS.HC, JSON.stringify(allHeadcount));
+    localStorage.setItem(STORAGE_KEYS.PAY, JSON.stringify(allPayroll));
+    localStorage.setItem(STORAGE_KEYS.ATT, JSON.stringify(allAttendance));
+    
+    setToast({ message: '모든 데이터가 브라우저에 안전하게 저장되었습니다.', type: 'success' });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleResetData = () => {
+    if (window.confirm("모든 데이터를 초기 기본값으로 리셋하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) {
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
+  // 현재 월 데이터 필터링
   const headcount = useMemo(() => allHeadcount.filter(h => h.reference_month === currentMonth), [allHeadcount, currentMonth]);
   const payroll = useMemo(() => allPayroll.filter(p => p.effective_month === currentMonth), [allPayroll, currentMonth]);
   const attendance = useMemo(() => allAttendance.filter(a => a.reference_month === currentMonth), [allAttendance, currentMonth]);
@@ -52,24 +101,7 @@ const App: React.FC = () => {
         children: [], 
         metrics: { 
           headcount: hc || { org_id: org.org_id, reference_month: currentMonth, total_headcount: 0, regular_headcount: 0, contract_headcount: 0, executive_headcount: 0, new_hires: 0, resignations: 0 },
-          payroll: pr || { 
-            org_id: org.org_id, 
-            effective_month: currentMonth, 
-            base_pay: 0, 
-            base_pay_retro: 0,
-            fixed_overtime: 0,
-            rank_allowance: 0,
-            meal_allowance: 0,
-            position_allowance: 0,
-            childcare_allowance: 0,
-            holiday_work_pay: 0,
-            overtime_work_pay: 0,
-            other_allowance: 0,
-            cert_allowance: 0,
-            annual_leave_pay: 0,
-            incentive: 0,
-            currency: 'KRW' 
-          },
+          payroll: pr || { org_id: org.org_id, effective_month: currentMonth, base_pay: 0, base_pay_retro: 0, fixed_overtime: 0, rank_allowance: 0, meal_allowance: 0, position_allowance: 0, childcare_allowance: 0, holiday_work_pay: 0, overtime_work_pay: 0, other_allowance: 0, cert_allowance: 0, annual_leave_pay: 0, incentive: 0, currency: 'KRW' },
           attendance: at || { org_id: org.org_id, reference_month: currentMonth, avg_working_hours: 0, weekday_overtime_hours: 0, holiday_overtime_hours: 0, total_overtime_hours: 0, attendance_issues: 0 }
         }
       });
@@ -88,7 +120,13 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50 font-pretendard">
-      <Sidebar currentView={currentView} setCurrentView={setCurrentView} />
+      <Sidebar 
+        currentView={currentView} 
+        setCurrentView={setCurrentView} 
+        onReset={handleResetData} 
+        onSave={handleSaveAll}
+      />
+      
       <main className="flex-1 overflow-y-auto p-8 relative">
         <header className="mb-8 flex justify-between items-center">
           <div>
@@ -99,7 +137,7 @@ const App: React.FC = () => {
               {currentView === 'attendance' && '전사 근태 현황'}
               {currentView === 'data' && '데이터 매니지먼트'}
             </h1>
-            <p className="text-slate-400 text-sm font-medium">HR Insight Pro v2.5 | 조직 중심 의사결정 지원 플랫폼</p>
+            <p className="text-slate-400 text-sm font-medium">HR Insight Pro v2.6 | Data Persistent Mode</p>
           </div>
           <div className="flex items-center space-x-3 bg-white p-2.5 rounded-2xl shadow-sm border border-slate-200">
             <div className="flex items-center space-x-2 px-2">
@@ -130,7 +168,7 @@ const App: React.FC = () => {
         </header>
 
         {currentView === 'dashboard' && <Dashboard allHeadcount={allHeadcount} allPayroll={allPayroll} allAttendance={allAttendance} organizations={organizations} currentMonth={currentMonth} />}
-        {currentView === 'orgchart' && <OrgChart tree={orgTree} onUpdateOrgs={() => {}} />}
+        {currentView === 'orgchart' && <OrgChart tree={orgTree} onUpdateOrgs={setOrganizations} />}
         {currentView === 'payroll' && (
           <PayrollAnalysis 
             payroll={payroll} 
@@ -163,10 +201,21 @@ const App: React.FC = () => {
             headcount={headcount} 
             payroll={payroll}
             onUpdateData={(orgs, hc, pr) => {
+              if (orgs) setOrganizations(orgs);
               setAllHeadcount(prev => [...prev.filter(h => h.reference_month !== currentMonth), ...hc]);
               setAllPayroll(prev => [...prev.filter(p => p.effective_month !== currentMonth), ...pr]);
             }} 
           />
+        )}
+
+        {/* Toast Notification */}
+        {toast && (
+          <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[999] animate-fade-in">
+            <div className={`px-6 py-4 rounded-3xl shadow-2xl border flex items-center space-x-3 ${toast.type === 'success' ? 'bg-slate-900 border-emerald-500 text-white' : 'bg-white border-blue-500 text-slate-900'}`}>
+              <div className={`w-2 h-2 rounded-full ${toast.type === 'success' ? 'bg-emerald-500' : 'bg-blue-500'} animate-pulse`}></div>
+              <span className="text-sm font-bold tracking-tight">{toast.message}</span>
+            </div>
+          </div>
         )}
       </main>
     </div>
